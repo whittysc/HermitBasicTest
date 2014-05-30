@@ -19,11 +19,21 @@ public class UpDownActivity extends Activity {
 		setContentView(R.layout.activity_up_down);
 		
 		//Add functionality for when the buttons are pressed
+		//upButton
 		Button upButton = (Button) findViewById(R.id.up_button);
 		upButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
 				sendMessage("up");
+			}
+		});
+		
+		//downButton
+		Button downButton = (Button) findViewById(R.id.down_button);
+		downButton.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View v){
+				sendMessage("down");
 			}
 		});
 	}
