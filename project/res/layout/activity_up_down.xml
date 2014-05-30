@@ -6,13 +6,13 @@
     android:orientation="vertical" >
     
 	<Button
-        android:id="@+id/upButton"
+        android:id="@+id/up_button"
         android:layout_width="fill_parent"
         android:layout_height="200dp"
         android:gravity="center"
         android:background="@drawable/up_button" />
 	<Button
-	    android:id="@+id/downButton"
+	    android:id="@+id/down_button"
 	    android:layout_width="fill_parent"
 	    android:layout_height="200dp"
 	    android:gravity="center"
