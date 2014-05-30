@@ -15,6 +15,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 
@@ -28,6 +29,9 @@ public class UpDownActivity extends ActionBarActivity {
 	private MediaRouteSelector mMediaRouteSelector;
 	private MediaRouter.Callback mMediaRouterCallback;
 	private CastDevice mSelectedDevice;
+	
+	// Connection / API Client / Communication Members
+	private Cast.Listener mCastListener;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +110,7 @@ public class UpDownActivity extends ActionBarActivity {
 			
 			//Handle the user route selection.
 			mSelectedDevice = CastDevice.getFromBundle(info.getExtras());	
+			launchReceiver();
 		}
 		
 		@Override
@@ -114,6 +119,27 @@ public class UpDownActivity extends ActionBarActivity {
 			Toast.makeText(UpDownActivity.this, "Deselected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
 			mSelectedDevice = null;
 		}
+	}
+	
+	/**
+	 * Start the receiver app
+	 */
+	private void launchReceiver(){
+		try{
+			mCastListener = new Cast.Listener(){
+				@Override
+				public void onApplicationDisconnected(int errorCode){
+					Log.d(TAG, "Application has stopped");
+					teardown();
+				}
+			};
+		} catch (Exception e){
+			Log.e(TAG, "Failed launchReceiver", e);
+		}
+	}
+	
+	private void teardown(){
+		//Destroy all the connection objects
 	}
 	
 	/**
