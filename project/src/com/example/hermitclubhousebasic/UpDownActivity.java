@@ -15,11 +15,15 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
+import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 
 public class UpDownActivity extends ActionBarActivity {
 
@@ -37,6 +41,9 @@ public class UpDownActivity extends ActionBarActivity {
 	private ConnectionFailedListener mConnectionFailedListener;
 	private ConnectionCallbacks mConnectionCallbacks;
 	private GoogleApiClient mApiClient;
+	private String mSessionId;
+	private boolean mApplicationStarted;
+	private boolean mWaitingForReconnect;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +163,8 @@ public class UpDownActivity extends ActionBarActivity {
 				.addConnectionCallbacks(mConnectionCallbacks)
 				.addOnConnectionFailedListener(mConnectionFailedListener)
 				.build();
+			
+			//TODO: Connect the mApiClient
 		} catch (Exception e){
 			Log.e(TAG, "Failed launchReceiver", e);
 		}
@@ -177,11 +186,64 @@ public class UpDownActivity extends ActionBarActivity {
 		@Override
 		public void onConnected(Bundle connectionHint){
 			Log.d(TAG, "onConnected");
+			if (mApiClient == null){
+				//We got disconnected while this runnable was
+				//pending execution
+				return;
+			}
+			
+			try {
+				if (mWaitingForReconnect){
+					mWaitingForReconnect = false;
+					
+					/// Check if the receiver app is still running
+					if ((connectionHint != null)
+							&& connectionHint.getBoolean(Cast.EXTRA_APP_NO_LONGER_RUNNING)){
+						Log.d(TAG, "App is no longer running");
+						teardown();
+					} else {
+						// Re-create the custom message channel
+					}
+					
+				} else {
+					// Launch the receiver app
+					Cast.CastApi.launchApplication(mApiClient, getString(R.string.app_id), false)
+						.setResultCallback(new MyResultCallback());
+				}
+				
+			} catch (Exception e){
+				Log.e(TAG, "Failed to launch application", e);
+			}
 		}
 		
 		@Override
 		public void onConnectionSuspended(int cause) {
 			Log.d(TAG, "onConnectionSuspended");
+			mWaitingForReconnect = true;
+		}
+	}
+	
+	private class MyResultCallback implements ResultCallback<Cast.ApplicationConnectionResult> {
+		@Override
+		public void onResult(ApplicationConnectionResult result){
+			Status status = result.getStatus();
+			Log.d(TAG, "ApplicationConnectionResultCallback.onResult: statusCode="+status.getStatusCode());
+			if (status.isSuccess()){
+				ApplicationMetadata applicationMetaData = result.getApplicationMetadata();
+				mSessionId = result.getSessionId();
+				String applicationStatus = result.getApplicationStatus();
+				boolean wasLaunched = result.getWasLaunched();
+				Log.d(TAG, "application name: " + applicationMetaData.getName()
+						+ ", status: " + applicationStatus
+						+ ", sessionId: " + mSessionId
+						+ ", wasLaunched: " + wasLaunched);
+				mApplicationStarted = true;
+				
+				//TODO: Create the custom message channel
+			} else {
+				Log.e(TAG, "applciation could not launch");
+				teardown();
+			}
 		}
 	}
 	
@@ -189,6 +251,12 @@ public class UpDownActivity extends ActionBarActivity {
 		//Destroy all the connection objects
 		Log.d(TAG, "Tearing down the connection objects!");
 		if (mApiClient != null){
+			if (mApplicationStarted){
+				if (mApiClient.isConnected()){
+					//TODO: Stop the application and destroy the channel
+				}
+				mApplicationStarted = false;
+			}
 			mApiClient = null;
 		}
 		mSelectedDevice = null;
