@@ -15,6 +15,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 
 public class UpDownActivity extends ActionBarActivity {
@@ -26,6 +27,7 @@ public class UpDownActivity extends ActionBarActivity {
 	private MediaRouter mMediaRouter;
 	private MediaRouteSelector mMediaRouteSelector;
 	private MediaRouter.Callback mMediaRouterCallback;
+	private CastDevice mSelectedDevice;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -101,12 +103,16 @@ public class UpDownActivity extends ActionBarActivity {
 		public void onRouteSelected(MediaRouter router, RouteInfo info){
 			Log.d(TAG, "onRouteSelected: info="+info);
 			Toast.makeText(UpDownActivity.this, "Selected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
+			
+			//Handle the user route selection.
+			mSelectedDevice = CastDevice.getFromBundle(info.getExtras());	
 		}
 		
 		@Override
 		public void onRouteUnselected(MediaRouter router, RouteInfo info) {
 			Log.d(TAG, "onRouteUnselected: info="+info);
 			Toast.makeText(UpDownActivity.this, "Deselected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
+			mSelectedDevice = null;
 		}
 	}
 	
