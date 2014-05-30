@@ -85,6 +85,12 @@ public class UpDownActivity extends ActionBarActivity {
 	}
 	
 	@Override
+	public void onDestroy(){
+		teardown();
+		super.onDestroy();
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
 		super.onCreateOptionsMenu(menu);
 		Log.d(TAG, "Inside onCreateOptionsMenu");
@@ -117,6 +123,7 @@ public class UpDownActivity extends ActionBarActivity {
 		public void onRouteUnselected(MediaRouter router, RouteInfo info) {
 			Log.d(TAG, "onRouteUnselected: info="+info);
 			Toast.makeText(UpDownActivity.this, "Deselected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
+			teardown();
 			mSelectedDevice = null;
 		}
 	}
