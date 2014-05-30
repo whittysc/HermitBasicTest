@@ -163,8 +163,7 @@ public class UpDownActivity extends ActionBarActivity {
 				.addConnectionCallbacks(mConnectionCallbacks)
 				.addOnConnectionFailedListener(mConnectionFailedListener)
 				.build();
-			
-			//TODO: Connect the mApiClient
+			mApiClient.connect();
 		} catch (Exception e){
 			Log.e(TAG, "Failed launchReceiver", e);
 		}
@@ -253,7 +252,8 @@ public class UpDownActivity extends ActionBarActivity {
 		if (mApiClient != null){
 			if (mApplicationStarted){
 				if (mApiClient.isConnected()){
-					//TODO: Stop the application and destroy the channel
+					Cast.CastApi.stopApplication(mApiClient, mSessionId);
+					//TODO: Destroy the message channel
 				}
 				mApplicationStarted = false;
 			}
