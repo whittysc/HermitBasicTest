@@ -18,6 +18,8 @@ import android.widget.Toast;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 public class UpDownActivity extends ActionBarActivity {
 
@@ -32,6 +34,7 @@ public class UpDownActivity extends ActionBarActivity {
 	
 	// Connection / API Client / Communication Members
 	private Cast.Listener mCastListener;
+	private ConnectionFailedListener mConnectionFailedListener;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -140,13 +143,30 @@ public class UpDownActivity extends ActionBarActivity {
 					teardown();
 				}
 			};
+			
+			//Connect to Google Play Services to hook up to the Cast device
+			mConnectionFailedListener = new ConnectionFailedListener();
 		} catch (Exception e){
 			Log.e(TAG, "Failed launchReceiver", e);
 		}
 	}
 	
+	/*
+	 * Google Play Services callbacks
+	 */
+	private class ConnectionFailedListener implements
+		GoogleApiClient.OnConnectionFailedListener {
+		@Override
+		public void onConnectionFailed(ConnectionResult result){
+			Log.e(TAG, "onConnectionFailed");
+			teardown();
+		}
+	}
+	
+	
 	private void teardown(){
 		//Destroy all the connection objects
+		Log.d(TAG, "Tearing down the connection objects!");
 	}
 	
 	/**
