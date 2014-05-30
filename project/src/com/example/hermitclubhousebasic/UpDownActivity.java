@@ -35,6 +35,8 @@ public class UpDownActivity extends ActionBarActivity {
 	// Connection / API Client / Communication Members
 	private Cast.Listener mCastListener;
 	private ConnectionFailedListener mConnectionFailedListener;
+	private ConnectionCallbacks mConnectionCallbacks;
+	private GoogleApiClient mApiClient;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +148,14 @@ public class UpDownActivity extends ActionBarActivity {
 			
 			//Connect to Google Play Services to hook up to the Cast device
 			mConnectionFailedListener = new ConnectionFailedListener();
+			mConnectionCallbacks = new ConnectionCallbacks();
+			Cast.CastOptions.Builder apiOptionsBuilder = Cast.CastOptions
+					.builder(mSelectedDevice, mCastListener);
+			mApiClient = new GoogleApiClient.Builder(this)
+				.addApi(Cast.API, apiOptionsBuilder.build())
+				.addConnectionCallbacks(mConnectionCallbacks)
+				.addOnConnectionFailedListener(mConnectionFailedListener)
+				.build();
 		} catch (Exception e){
 			Log.e(TAG, "Failed launchReceiver", e);
 		}
@@ -163,10 +173,25 @@ public class UpDownActivity extends ActionBarActivity {
 		}
 	}
 	
+	private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
+		@Override
+		public void onConnected(Bundle connectionHint){
+			Log.d(TAG, "onConnected");
+		}
+		
+		@Override
+		public void onConnectionSuspended(int cause) {
+			Log.d(TAG, "onConnectionSuspended");
+		}
+	}
 	
 	private void teardown(){
 		//Destroy all the connection objects
 		Log.d(TAG, "Tearing down the connection objects!");
+		if (mApiClient != null){
+			mApiClient = null;
+		}
+		mSelectedDevice = null;
 	}
 	
 	/**
