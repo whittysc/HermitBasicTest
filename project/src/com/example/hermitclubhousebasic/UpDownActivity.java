@@ -1,14 +1,15 @@
 package com.example.hermitclubhousebasic;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class UpDownActivity extends Activity {
+public class UpDownActivity extends ActionBarActivity {
 
 	//Tag used for debug / log messages
 	private static final String TAG = UpDownActivity.class.getSimpleName();
@@ -36,6 +37,15 @@ public class UpDownActivity extends Activity {
 				sendMessage("down");
 			}
 		});
+		Log.d(TAG, "Finished onCreate");
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu){
+		super.onCreateOptionsMenu(menu);
+		Log.d(TAG, "Inside onCreateOptionsMenu");
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
 	}
 	
 	/**
