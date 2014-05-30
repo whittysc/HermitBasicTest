@@ -5,6 +5,8 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.MediaRouteActionProvider;
 import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
+import android.support.v7.media.MediaRouter.RouteInfo;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +22,10 @@ public class UpDownActivity extends ActionBarActivity {
 	//Tag used for debug / log messages
 	private static final String TAG = UpDownActivity.class.getSimpleName();
 	
+	// Media router members
+	private MediaRouter mMediaRouter;
 	private MediaRouteSelector mMediaRouteSelector;
+	private MediaRouter.Callback mMediaRouterCallback;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +52,30 @@ public class UpDownActivity extends ActionBarActivity {
 		});
 		
 		// Configure the Cast device discovery
+		mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 		mMediaRouteSelector = new MediaRouteSelector.Builder()
 			.addControlCategory(
 					CastMediaControlIntent.categoryForCast(getResources()
 							.getString(R.string.app_id))).build();
+		mMediaRouterCallback = new MyMediaRouterCallback();
 		Log.d(TAG, "Finished onCreate");
+	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		// Start media router discovery
+		mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback, 
+				MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN);
+	}
+	
+	@Override
+	protected void onPause(){
+		if (isFinishing()){
+			// End media router discovery
+			mMediaRouter.removeCallback(mMediaRouterCallback);	
+		}
+		super.onPause();
 	}
 	
 	@Override
@@ -67,6 +91,23 @@ public class UpDownActivity extends ActionBarActivity {
 		//Hook up the button to the selector for device discovery
 		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
 		return true;
+	}
+	
+	/**
+	 * Callback for MediaRouter events
+	 */
+	private class MyMediaRouterCallback extends MediaRouter.Callback {
+		@Override
+		public void onRouteSelected(MediaRouter router, RouteInfo info){
+			Log.d(TAG, "onRouteSelected: info="+info);
+			Toast.makeText(UpDownActivity.this, "Selected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
+		}
+		
+		@Override
+		public void onRouteUnselected(MediaRouter router, RouteInfo info) {
+			Log.d(TAG, "onRouteUnselected: info="+info);
+			Toast.makeText(UpDownActivity.this, "Deselected route to: "+info.getName(), Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	/**
