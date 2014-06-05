@@ -313,6 +313,25 @@ public class UpDownActivity extends ActionBarActivity {
 	 */
 	private void sendMessage(String message){
 		Log.d(TAG, "Sending message: "+message);
-		Toast.makeText(UpDownActivity.this, message, Toast.LENGTH_SHORT).show();
+		if (mApiClient != null && mClientReceiverChannel != null){
+			try {
+				Cast.CastApi.sendMessage(mApiClient,
+						mClientReceiverChannel.getNamespace(), message)
+						.setResultCallback(new ResultCallback<Status>() {
+							@Override
+							public void onResult(Status result){
+								if (!result.isSuccess()) {
+									Log.e(TAG, "Sending message failed");
+								} else {
+									Log.d(TAG, "Sending message succeeded!");
+								}
+							}
+						});
+			} catch (Exception e){
+				Log.e(TAG, "Exception while sending message", e);
+			}
+		} else {
+			Toast.makeText(UpDownActivity.this, message, Toast.LENGTH_SHORT).show();
+		}
 	}
 }
