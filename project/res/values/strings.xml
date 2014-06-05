@@ -5,4 +5,5 @@
     <string name="hello_world">Hello world!</string>
 	<string name="media_route_menu_title">Play on&#8230;</string>
 	<string name="app_id">D87C7AE8</string>
+	<string name="namespace">urn:x-cast:com.example.hermitclubhousebasic</string>
 </resources>

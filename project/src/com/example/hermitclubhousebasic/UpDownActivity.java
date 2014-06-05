@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
+import com.google.android.gms.cast.Cast.MessageReceivedCallback;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.gms.common.ConnectionResult;
@@ -41,6 +42,7 @@ public class UpDownActivity extends ActionBarActivity {
 	private ConnectionFailedListener mConnectionFailedListener;
 	private ConnectionCallbacks mConnectionCallbacks;
 	private GoogleApiClient mApiClient;
+	private ClientReceiverChannel mClientReceiverChannel;
 	private String mSessionId;
 	private boolean mApplicationStarted;
 	private boolean mWaitingForReconnect;
@@ -128,7 +130,7 @@ public class UpDownActivity extends ActionBarActivity {
 			
 			//Handle the user route selection.
 			mSelectedDevice = CastDevice.getFromBundle(info.getExtras());	
-			launchReceiver();
+			launchServer();
 		}
 		
 		@Override
@@ -143,7 +145,7 @@ public class UpDownActivity extends ActionBarActivity {
 	/**
 	 * Start the receiver app
 	 */
-	private void launchReceiver(){
+	private void launchServer(){
 		try{
 			mCastListener = new Cast.Listener(){
 				@Override
@@ -201,7 +203,7 @@ public class UpDownActivity extends ActionBarActivity {
 						Log.d(TAG, "App is no longer running");
 						teardown();
 					} else {
-						// Re-create the custom message channel
+						//TODO: Reset the message received callbacks to the client receiver channel
 					}
 					
 				} else {
@@ -238,12 +240,33 @@ public class UpDownActivity extends ActionBarActivity {
 						+ ", wasLaunched: " + wasLaunched);
 				mApplicationStarted = true;
 				
-				//TODO: Create the custom message channel
+				//Create the ClientReceiverChannel
+				mClientReceiverChannel = new ClientReceiverChannel();
+				// TODO: set the Message Received Callback to the Client Receiver Channel
 			} else {
 				Log.e(TAG, "applciation could not launch");
 				teardown();
 			}
 		}
+	}
+	
+	/**
+	 * Custom message channel
+	 */
+	class ClientReceiverChannel implements MessageReceivedCallback {
+
+		@Override
+		public void onMessageReceived(CastDevice castDevice, String namespace, String message) {
+			Log.d(TAG, "onMessageReceived: namespace="+namespace+" message="+message);
+		}
+		
+		/*
+		 * @return custom namespace
+		 */
+		public String getNamespace() {
+			return getString(R.string.namespace);
+		}
+		
 	}
 	
 	private void teardown(){
@@ -253,7 +276,11 @@ public class UpDownActivity extends ActionBarActivity {
 			if (mApplicationStarted){
 				if (mApiClient.isConnected()){
 					Cast.CastApi.stopApplication(mApiClient, mSessionId);
-					//TODO: Destroy the message channel
+					if (mClientReceiverChannel != null){
+						//TODO: remove the message received callbacks on the client receiver channel
+						mClientReceiverChannel = null;
+					}
+					mApiClient.disconnect();
 				}
 				mApplicationStarted = false;
 			}
@@ -263,7 +290,7 @@ public class UpDownActivity extends ActionBarActivity {
 	}
 	
 	/**
-	 * Send a message to the receiver.
+	 * Send a message to the server.
 	 * Note: We'll proxy this for now by just toasting to the screen
 	 */
 	private void sendMessage(String message){
