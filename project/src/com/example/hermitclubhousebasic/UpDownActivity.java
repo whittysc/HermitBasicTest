@@ -1,5 +1,7 @@
 package com.example.hermitclubhousebasic;
 
+import java.io.IOException;
+
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -203,7 +205,10 @@ public class UpDownActivity extends ActionBarActivity {
 						Log.d(TAG, "App is no longer running");
 						teardown();
 					} else {
-						//TODO: Reset the message received callbacks to the client receiver channel
+						Cast.CastApi.setMessageReceivedCallbacks(
+								mApiClient,
+								mClientReceiverChannel.getNamespace(),
+								mClientReceiverChannel);
 					}
 					
 				} else {
@@ -240,9 +245,16 @@ public class UpDownActivity extends ActionBarActivity {
 						+ ", wasLaunched: " + wasLaunched);
 				mApplicationStarted = true;
 				
-				//Create the ClientReceiverChannel
+				//Create the ClientReceiverChannel and set the callbacks with the API
 				mClientReceiverChannel = new ClientReceiverChannel();
-				// TODO: set the Message Received Callback to the Client Receiver Channel
+				try {
+					Cast.CastApi.setMessageReceivedCallbacks(
+							mApiClient,
+							mClientReceiverChannel.getNamespace(),
+							mClientReceiverChannel);
+				} catch (IOException e) {
+					Log.e(TAG, "Exception while creating channel", e);
+				}
 			} else {
 				Log.e(TAG, "applciation could not launch");
 				teardown();
@@ -275,10 +287,16 @@ public class UpDownActivity extends ActionBarActivity {
 		if (mApiClient != null){
 			if (mApplicationStarted){
 				if (mApiClient.isConnected()){
-					Cast.CastApi.stopApplication(mApiClient, mSessionId);
-					if (mClientReceiverChannel != null){
-						//TODO: remove the message received callbacks on the client receiver channel
-						mClientReceiverChannel = null;
+					try {
+						Cast.CastApi.stopApplication(mApiClient, mSessionId);
+						if (mClientReceiverChannel != null){
+							Cast.CastApi.removeMessageReceivedCallbacks(
+									mApiClient, 
+									mClientReceiverChannel.getNamespace());
+							mClientReceiverChannel = null;
+						}
+					} catch (IOException e){
+						Log.e(TAG, "Exception while removing receiver channel", e);
 					}
 					mApiClient.disconnect();
 				}
