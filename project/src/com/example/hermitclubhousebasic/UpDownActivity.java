@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.cast.ApplicationMetadata;
@@ -54,13 +55,16 @@ public class UpDownActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_up_down);
 		
+		//Add the ability to get the text from the textbox
+		final EditText messageToServer = (EditText) findViewById(R.id.messageToServer);
+		
 		//Add functionality for when the buttons are pressed
 		//upButton
 		Button upButton = (Button) findViewById(R.id.up_button);
 		upButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				sendMessage("up");
+				sendMessage("up", messageToServer.getText().toString());
 			}
 		});
 		
@@ -69,7 +73,7 @@ public class UpDownActivity extends ActionBarActivity {
 		downButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
-				sendMessage("down");
+				sendMessage("down", messageToServer.getText().toString());
 			}
 		});
 		
@@ -316,7 +320,8 @@ public class UpDownActivity extends ActionBarActivity {
 	 * Send a message to the server.
 	 * Note: We'll proxy this for now by just toasting to the screen
 	 */
-	private void sendMessage(String message){
+	private void sendMessage(String buttonPressed, String textMessage){
+		String message = buttonPressed + "::" + textMessage;
 		Log.d(TAG, "Sending message: "+message);
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
