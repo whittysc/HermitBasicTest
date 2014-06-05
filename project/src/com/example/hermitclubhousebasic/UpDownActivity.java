@@ -158,8 +158,8 @@ public class UpDownActivity extends ActionBarActivity {
 			};
 			
 			//Connect to Google Play Services to hook up to the Cast device
-			mConnectionFailedListener = new ConnectionFailedListener();
 			mConnectionCallbacks = new ConnectionCallbacks();
+			mConnectionFailedListener = new ConnectionFailedListener();
 			Cast.CastOptions.Builder apiOptionsBuilder = Cast.CastOptions
 					.builder(mSelectedDevice, mCastListener);
 			mApiClient = new GoogleApiClient.Builder(this)
@@ -169,7 +169,7 @@ public class UpDownActivity extends ActionBarActivity {
 				.build();
 			mApiClient.connect();
 		} catch (Exception e){
-			Log.e(TAG, "Failed launchReceiver", e);
+			Log.e(TAG, "Failed launchServer", e);
 		}
 	}
 	
@@ -205,14 +205,19 @@ public class UpDownActivity extends ActionBarActivity {
 						Log.d(TAG, "App is no longer running");
 						teardown();
 					} else {
-						Cast.CastApi.setMessageReceivedCallbacks(
-								mApiClient,
-								mClientReceiverChannel.getNamespace(),
-								mClientReceiverChannel);
+						//Reset the channel as the client receiver
+						try {
+							Cast.CastApi.setMessageReceivedCallbacks(
+									mApiClient,
+									mClientReceiverChannel.getNamespace(),
+									mClientReceiverChannel);
+						} catch (IOException e){
+							Log.e(TAG, "Exception while creating channel", e);
+						}
 					}
 					
 				} else {
-					// Launch the receiver app
+					// Launch the server app
 					Cast.CastApi.launchApplication(mApiClient, getString(R.string.app_id), false)
 						.setResultCallback(new MyResultCallback());
 				}
