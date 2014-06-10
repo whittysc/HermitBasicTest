@@ -2,6 +2,7 @@ package com.example.hermitclubhousebasic;
 
 import java.io.IOException;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
@@ -66,7 +67,7 @@ public class UpDownActivity extends ActionBarActivity {
 		upButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				sendMessage("up", messageToServer.getText().toString());
+				notifyButtonPressed("up", messageToServer.getText().toString());
 			}
 		});
 		
@@ -75,7 +76,7 @@ public class UpDownActivity extends ActionBarActivity {
 		downButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
-				sendMessage("down", messageToServer.getText().toString());
+				notifyButtonPressed("down", messageToServer.getText().toString());
 			}
 		});
 		
@@ -319,27 +320,49 @@ public class UpDownActivity extends ActionBarActivity {
 	}
 	
 	/**
-	 * Send a message to the server.
-	 * Note: We'll proxy this for now by just toasting to the screen
+	 * Notify the server that you've pressed a button and whatever text was
+	 * in the text box at the time.
 	 */
-	private void sendMessage(String buttonPressed, String textMessage){
-		Log.d(TAG, "Sending message to server...");
+	private void notifyButtonPressed(String buttonPressed, String textMessage){
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
 				JSONObject payload = new JSONObject();
 				payload.put(getString(R.string.BUTTON_PRESSED), buttonPressed);
 				payload.put(getString(R.string.TEXT_FIELD), textMessage);
-				Cast.CastApi.sendMessage(mApiClient,
-						mClientReceiverChannel.getNamespace(), payload.toString())
-						.setResultCallback(new SendMessageResultCallback(payload.toString()));
-			} catch (Exception e){
-				Log.e(TAG, "Exception while sending message", e);
+				sendJSONToServer(payload);
+			} catch (JSONException j){
+				Log.e(TAG, "Exception while converting to JSON", j);
 			}
 		} else {
 			Toast.makeText(UpDownActivity.this, "Connect to Chromecast first, dipshit!", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
+	/*
+	 * Send a JSON Object to the server
+	 */
+	private void sendJSONToServer(JSONObject payload){
+		//Piggyback on sending strings to the server and trust that they'll process it correctly
+		sendStringToServer(payload.toString());
+	}
+	
+	/*
+	 * Send a string to the server
+	 */
+	private void sendStringToServer(String message){
+		Log.d(TAG, "Sending message to server...");
+		try {
+			Cast.CastApi.sendMessage(mApiClient,
+					mClientReceiverChannel.getNamespace(), message)
+					.setResultCallback(new SendMessageResultCallback(message));
+		} catch (Exception e){
+			Log.e(TAG, "Exception while sending message", e);
+		}
+	}
+	
+	/*
+	 * Callback class for reacting after a message is sent to the server
+	 */
 	class SendMessageResultCallback implements ResultCallback<Status> {
 		String mMessage;
 		
