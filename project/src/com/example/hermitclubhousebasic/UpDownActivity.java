@@ -323,9 +323,7 @@ public class UpDownActivity extends ActionBarActivity {
 	 * Note: We'll proxy this for now by just toasting to the screen
 	 */
 	private void sendMessage(String buttonPressed, String textMessage){
-		String message = getString(R.string.BUTTON_PRESSED)+"="+buttonPressed
-							+" "+getString(R.string.TEXT_FIELD)+"="+textMessage;
-		Log.d(TAG, "Sending message: " + message);
+		Log.d(TAG, "Sending message to server...");
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
 				JSONObject payload = new JSONObject();
@@ -333,22 +331,28 @@ public class UpDownActivity extends ActionBarActivity {
 				payload.put(getString(R.string.TEXT_FIELD), textMessage);
 				Cast.CastApi.sendMessage(mApiClient,
 						mClientReceiverChannel.getNamespace(), payload.toString())
-						.setResultCallback(new SendMessageResultCallback());
+						.setResultCallback(new SendMessageResultCallback(payload.toString()));
 			} catch (Exception e){
 				Log.e(TAG, "Exception while sending message", e);
 			}
 		} else {
-			Toast.makeText(UpDownActivity.this, message, Toast.LENGTH_SHORT).show();
+			Toast.makeText(UpDownActivity.this, "Connect to Chromecast first, dipshit!", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
 	class SendMessageResultCallback implements ResultCallback<Status> {
+		String mMessage;
+		
+		SendMessageResultCallback(String message){
+			mMessage = message;
+		}
+		
 		@Override
 		public void onResult(Status result){
 			if (!result.isSuccess()) {
-				Log.e(TAG, "Sending message failed");
+				Log.e(TAG, "Message \""+mMessage+"\" failed to send");
 			} else {
-				Log.d(TAG, "Sending message succeeded!");
+				Log.d(TAG, "Message \""+mMessage+"\" successfully sent!");
 			}
 		}
 	}
