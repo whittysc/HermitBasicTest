@@ -35,8 +35,6 @@ public class UpDownActivity extends ActionBarActivity {
 
 	//Tag used for debug / log messages
 	private static final String TAG = UpDownActivity.class.getSimpleName();
-	private final String MESSAGE_BUTTON_PRESSED = getString(R.string.BUTTON_PRESSED);
-	private final String MESSAGE_TEXT_FIELD = getString(R.string.TEXT_FIELD);
 	
 	// Media router members
 	private MediaRouter mMediaRouter;
@@ -325,14 +323,14 @@ public class UpDownActivity extends ActionBarActivity {
 	 * Note: We'll proxy this for now by just toasting to the screen
 	 */
 	private void sendMessage(String buttonPressed, String textMessage){
-		String message = MESSAGE_BUTTON_PRESSED+"="+buttonPressed
-							+" "+MESSAGE_TEXT_FIELD+"="+textMessage;
+		String message = getString(R.string.BUTTON_PRESSED)+"="+buttonPressed
+							+" "+getString(R.string.TEXT_FIELD)+"="+textMessage;
 		Log.d(TAG, "Sending message: " + message);
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
 				JSONObject payload = new JSONObject();
-				payload.put(MESSAGE_BUTTON_PRESSED, buttonPressed);
-				payload.put(MESSAGE_TEXT_FIELD, textMessage);
+				payload.put(getString(R.string.BUTTON_PRESSED), buttonPressed);
+				payload.put(getString(R.string.TEXT_FIELD), textMessage);
 				Cast.CastApi.sendMessage(mApiClient,
 						mClientReceiverChannel.getNamespace(), payload.toString())
 						.setResultCallback(new ResultCallback<Status>() {
