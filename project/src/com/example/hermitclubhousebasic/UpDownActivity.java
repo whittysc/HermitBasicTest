@@ -333,21 +333,23 @@ public class UpDownActivity extends ActionBarActivity {
 				payload.put(getString(R.string.TEXT_FIELD), textMessage);
 				Cast.CastApi.sendMessage(mApiClient,
 						mClientReceiverChannel.getNamespace(), payload.toString())
-						.setResultCallback(new ResultCallback<Status>() {
-							@Override
-							public void onResult(Status result){
-								if (!result.isSuccess()) {
-									Log.e(TAG, "Sending message failed");
-								} else {
-									Log.d(TAG, "Sending message succeeded!");
-								}
-							}
-						});
+						.setResultCallback(new SendMessageResultCallback());
 			} catch (Exception e){
 				Log.e(TAG, "Exception while sending message", e);
 			}
 		} else {
 			Toast.makeText(UpDownActivity.this, message, Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	class SendMessageResultCallback implements ResultCallback<Status> {
+		@Override
+		public void onResult(Status result){
+			if (!result.isSuccess()) {
+				Log.e(TAG, "Sending message failed");
+			} else {
+				Log.d(TAG, "Sending message succeeded!");
+			}
 		}
 	}
 }
