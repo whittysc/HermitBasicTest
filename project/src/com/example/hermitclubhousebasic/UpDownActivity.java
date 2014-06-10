@@ -2,6 +2,8 @@ package com.example.hermitclubhousebasic;
 
 import java.io.IOException;
 
+import org.json.JSONObject;
+
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -321,12 +323,16 @@ public class UpDownActivity extends ActionBarActivity {
 	 * Note: We'll proxy this for now by just toasting to the screen
 	 */
 	private void sendMessage(String buttonPressed, String textMessage){
-		String message = buttonPressed + "::" + textMessage;
-		Log.d(TAG, "Sending message: "+message);
+		String message = getString(R.string.BUTTON_PRESSED)+"="+buttonPressed
+							+" "+getString(R.string.TEXT_FIELD)+"="+textMessage;
+		Log.d(TAG, "Sending message: " + message);
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
+				JSONObject payload = new JSONObject();
+				payload.put(getString(R.string.BUTTON_PRESSED), buttonPressed);
+				payload.put(getString(R.string.TEXT_FIELD), textMessage);
 				Cast.CastApi.sendMessage(mApiClient,
-						mClientReceiverChannel.getNamespace(), message)
+						mClientReceiverChannel.getNamespace(), payload.toString())
 						.setResultCallback(new ResultCallback<Status>() {
 							@Override
 							public void onResult(Status result){
