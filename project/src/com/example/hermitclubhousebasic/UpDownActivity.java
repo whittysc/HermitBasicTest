@@ -155,15 +155,15 @@ public class UpDownActivity extends ActionBarActivity {
 	 * Start the receiver app
 	 */
 	private void launchServer(){
+		mCastListener = new Cast.Listener(){
+			@Override
+			public void onApplicationDisconnected(int errorCode){
+				Log.d(TAG, "Application has stopped");
+				teardown();
+			}
+		};
+		
 		try{
-			mCastListener = new Cast.Listener(){
-				@Override
-				public void onApplicationDisconnected(int errorCode){
-					Log.d(TAG, "Application has stopped");
-					teardown();
-				}
-			};
-			
 			//Connect to Google Play Services to hook up to the Cast device
 			mConnectionCallbacks = new ConnectionCallbacks();
 			mConnectionFailedListener = new ConnectionFailedListener();
@@ -282,6 +282,17 @@ public class UpDownActivity extends ActionBarActivity {
 		@Override
 		public void onMessageReceived(CastDevice castDevice, String namespace, String message) {
 			Log.d(TAG, "onMessageReceived: namespace="+namespace+" message="+message);
+			try{
+				JSONObject received = new JSONObject(message);
+				String sender = (String)received.opt( getString(R.string.KEY_SENDER) );
+				String text = (String)received.opt( getString(R.string.KEY_TEXT) );
+				String button = (String)received.opt( getString(R.string.KEY_BUTTON) );
+				Toast.makeText(UpDownActivity.this, 
+						"sender="+sender+" text="+text+" button="+button, 
+						Toast.LENGTH_SHORT).show();
+			} catch (JSONException e){
+				Log.e(TAG, "Message \""+message+"\" contains malformed JSON data!", e);
+			}
 		}
 		
 		/*
@@ -327,8 +338,8 @@ public class UpDownActivity extends ActionBarActivity {
 		if (mApiClient != null && mClientReceiverChannel != null){
 			try {
 				JSONObject payload = new JSONObject();
-				payload.put(getString(R.string.BUTTON_PRESSED), buttonPressed);
-				payload.put(getString(R.string.TEXT_FIELD), textMessage);
+				payload.put(getString(R.string.KEY_BUTTON), buttonPressed);
+				payload.put(getString(R.string.KEY_TEXT), textMessage);
 				sendJSONToServer(payload);
 			} catch (JSONException j){
 				Log.e(TAG, "Exception while converting to JSON", j);
